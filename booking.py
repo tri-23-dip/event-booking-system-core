@@ -17,41 +17,51 @@ def save_data(data):
 
 def get_available_seats():
     data = load_data()
-    return data["total_seats"] - len(data["booked_seats"])
+    return [seat for seat, user in data["seats"].items() if user is None]
 
 
 def book_seat(user_id):
     with lock:
         data = load_data()
 
-        if user_id in data["booked_seats"]:
-            return f"User {user_id} already has a booking."
+        # Prevent double booking
+        if user_id in data["seats"].values():
+            return f"User {user_id} already has a booked seat."
 
-        if len(data["booked_seats"]) >= data["total_seats"]:
-            return "No seats available."
+        # Find first available seat
+        for seat, user in data["seats"].items():
+            if user is None:
+                data["seats"][seat] = user_id
+                save_data(data)
+                return f"Seat {seat} successfully booked for user {user_id}."
 
-        data["booked_seats"].append(user_id)
-        save_data(data)
-
-        return f"Seat booked successfully for user {user_id}."
+        return "No seats available."
 
 
 def cancel_booking(user_id):
     with lock:
         data = load_data()
 
-        if user_id not in data["booked_seats"]:
-            return f"No booking found for user {user_id}."
+        for seat, user in data["seats"].items():
+            if user == user_id:
+                data["seats"][seat] = None
+                save_data(data)
+                return f"Booking for user {user_id} on seat {seat} cancelled."
 
-        data["booked_seats"].remove(user_id)
-        save_data(data)
+        return f"No booking found for user {user_id}."
 
-        return f"Booking cancelled for user {user_id}."
+
+def show_seat_map():
+    data = load_data()
+    for seat, user in data["seats"].items():
+        status = "Available" if user is None else f"Booked by {user}"
+        print(f"Seat {seat}: {status}")
 
 
 if __name__ == "__main__":
     print(book_seat("user1"))
     print(book_seat("user2"))
-    print(get_available_seats())
+    print(book_seat("user1"))  # conflict test
+    show_seat_map()
     print(cancel_booking("user1"))
-    print(get_available_seats())
+    show_seat_map()
