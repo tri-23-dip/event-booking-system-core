@@ -1,23 +1,41 @@
-# Event Booking System Core
+# 🎟️ Event Booking System Core
 
 ## Overview
-A lightweight backend core for managing event seat bookings with consistency and conflict prevention.
+A lightweight yet robust backend core for an event seat booking system, designed with **booking consistency, explicit seat allocation, and concurrency safety** in mind.
 
-## Features
-- Seat availability tracking
-- Booking and cancellation
-- Conflict prevention using locking
-- JSON-based persistent state
+This project focuses on **business logic and state management**, keeping the implementation simple while modeling real-world constraints found in ticketing systems.
 
-## Tech Stack
+---
+
+## 🚀 Features
+
+- ✅ Explicit seat numbering (Seat 1 → N)
+- 🎟️ User-selected seat booking
+- 🔁 Booking cancellation
+- 🚫 Double-booking prevention
+- 🔒 Thread-safe operations using locks
+- 🧪 Unit tests simulating race conditions
+- 💾 JSON-based persistent state (DB-ready design)
+
+---
+
+## 🧠 Design Highlights
+
+- **Single source of truth** via `data.json`
+- **Atomic-style operations**: read → validate → write
+- **Concurrency-style thinking** using thread locks
+- Logic easily portable to SQL / NoSQL databases
+- Clean separation of state and business rules
+
+---
+
+## 🛠 Tech Stack
+
 - Python
 - JSON
+- Threading (for concurrency simulation)
 
-## How It Works
-- `data.json` stores event and booking state
-- `booking.py` handles all business logic
-- Thread lock ensures booking consistency
+---
 
-## How to Run
-```bash
-python booking.py
+## 📁 Project Structure
+

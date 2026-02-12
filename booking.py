@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 
 DATA_FILE = "data.json"
 lock = threading.Lock()
@@ -20,22 +21,31 @@ def get_available_seats():
     return [seat for seat, user in data["seats"].items() if user is None]
 
 
-def book_seat(user_id):
+def book_specific_seat(user_id, seat_number):
     with lock:
         data = load_data()
 
-        # Prevent double booking
+        seat_number = str(seat_number)
+
+        # Seat existence
+        if seat_number not in data["seats"]:
+            return f"Seat {seat_number} does not exist."
+
+        # Prevent double booking by same user
         if user_id in data["seats"].values():
-            return f"User {user_id} already has a booked seat."
+            return f"User {user_id} already has a booking."
 
-        # Find first available seat
-        for seat, user in data["seats"].items():
-            if user is None:
-                data["seats"][seat] = user_id
-                save_data(data)
-                return f"Seat {seat} successfully booked for user {user_id}."
+        # Seat availability
+        if data["seats"][seat_number] is not None:
+            return f"Seat {seat_number} is already booked."
 
-        return "No seats available."
+        # Simulate processing delay (real-world race condition)
+        time.sleep(0.1)
+
+        data["seats"][seat_number] = user_id
+        save_data(data)
+
+        return f"Seat {seat_number} successfully booked for user {user_id}."
 
 
 def cancel_booking(user_id):
@@ -53,15 +63,6 @@ def cancel_booking(user_id):
 
 def show_seat_map():
     data = load_data()
-    for seat, user in data["seats"].items():
+    for seat, user in sorted(data["seats"].items(), key=lambda x: int(x[0])):
         status = "Available" if user is None else f"Booked by {user}"
         print(f"Seat {seat}: {status}")
-
-
-if __name__ == "__main__":
-    print(book_seat("user1"))
-    print(book_seat("user2"))
-    print(book_seat("user1"))  # conflict test
-    show_seat_map()
-    print(cancel_booking("user1"))
-    show_seat_map()
